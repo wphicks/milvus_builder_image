@@ -1,10 +1,11 @@
 #!/bin/bash
-BUILDER_IMAGE_BASE="${BUILDER_IMAGE_BASE:-'gitlab-master.nvidia.com:5005/whicks/milvus:builder'}"
-BUILDER_IMAGE_TAG="${BUILDER_IMAGE_TAG:-'latest'}"
+set -e
+BUILDER_IMAGE_BASE="${BUILDER_IMAGE_BASE:-"gitlab-master.nvidia.com:5005/whicks/milvus:builder"}"
+BUILDER_IMAGE_TAG="${BUILDER_IMAGE_TAG:-"latest"}"
 
-FORCE_BUILD_BUILDER="${FORCE_BUILD_BUILDER:-'false'}"
+FORCE_BUILD_BUILDER="${FORCE_BUILD_BUILDER:-"false"}"
 
-MILVUS_REPO="${MILVUS_REPO:-'git@github.com:milvus-io/milvus.git'}"
+MILVUS_REPO="${MILVUS_REPO:-"git@github.com:milvus-io/milvus.git"}"
 MILVUS_BRANCH='master'
 
 pushd build_context
@@ -35,12 +36,16 @@ else
   BUILDER_IMAGE="${BUILDER_IMAGE_BASE}:${BUILDER_IMAGE_TAG}"
 fi
 
-if [ "$FORCE_BUILD_BUILDER" != "true" ] || docker pull $BUILDER_IMAGE
+BUILDER_BUILD_REQUIRED="$FORCE_BUILD_BUILDER"
+if [ "$BUILDER_BUILD_REQUIRED" != "true" ]
 then
-  echo "Pulled prebuilt builder image: $BUILDER_IMAGE"
-else
+  docker pull "$BUILDER_IMAGE" || BUILDER_BUILD_REQUIRED="true"
+fi
+
+if [ "$BUILDER_BUILD_REQUIRED" == "true" ]
+then
   echo "Building builder image: $BUILDER_IMAGE"
-  docker build -t "$BUILDER_IMAGE" ./build_context
+  docker build -t "$BUILDER_IMAGE" -f ./Dockerfile ./build_context
   docker push "$BUILDER_IMAGE" || echo "Failed to push builder image: $BUILDER_IMAGE"
 fi
 
