@@ -9,8 +9,8 @@ fix_owner() {
 trap fix_owner EXIT
 
 pushd /workspace/src
-if [ ! -d "cmake_build" ]; then
-    tar -xzf /cmake_build_cache.tar.gz
-fi
+# if [ ! -d "cmake_build" ]; then
+#     tar -xzf /cmake_build_cache.tar.gz
+# fi
 
 make clean && make gpu-install
